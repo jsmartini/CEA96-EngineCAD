@@ -30,12 +30,10 @@ def reader(file):
             buffer = f.readline()
 
             if re.search("END PRODUCTS", buffer) != None:
-                print("FINISHED PRODUCTS")
                 PDFLAG = False
                 continue
-            elif re.search("END REACTANTS", buffer) != None:
-                print("FINISHED REACTANTS")
-                return thermodata
+            if re.search("END REACTANTS", buffer) != None:
+                break
 
             if InfoFlag:
                 if line == 1:
@@ -56,14 +54,19 @@ def reader(file):
                     entry["Source"] = buffer[3:10]
                     entry["Elements"] = {}
                     # 10-18; spacing is by 8
-                    entry["Elements"][buffer[10:12]] = int(buffer[14:15])
-                    entry["Elements"][buffer[18:20]] = int(buffer[22:23])
-                    entry["Elements"][buffer[26:28]] = int(buffer[30:31])
-                    entry["Elements"][buffer[34:36]] = int(buffer[38:39])
-                    entry["Elements"][buffer[42:44]] = int(buffer[46:47])
+                    if buffer[10:12] != "  ":
+                        entry["Elements"][buffer[10:12]] = float(buffer[14:15])
+                    if buffer[18:20] != "  ":
+                        entry["Elements"][buffer[18:20]] = float(buffer[22:23])
+                    if buffer[26:28] != "  ":
+                        entry["Elements"][buffer[26:28]] = float(buffer[30:31])
+                    if buffer[34:36] != "  ":
+                        entry["Elements"][buffer[34:36]] = float(buffer[38:39])
+                    if buffer[42:44] != "  ":
+                        entry["Elements"][buffer[42:44]] = float(buffer[46:47])
                     buffer = buffer[51:-1]
                     buffer = re.split(r'\s+', buffer)
-                    if float(buffer[0]) != 0:
+                    if buffer[0] == "0.000548579903":
                         entry["MolecularWeight"] = float(buffer[0])
                         entry["HeatOfFormation"] = float(buffer[1])
                     else:
@@ -97,6 +100,11 @@ def reader(file):
                         entry["Intervals"].append(interval)
                         interval = {"temp_lower": 0, "temp_upper": 0, "T_exp": [], "Cp_coes": [], "b_constants": [],
                                     "EnthalpyDifference": 0}
+                        if PDFLAG:
+                            thermodata["PRODUCTS"][entry["name"]] = entry
+                        elif not PDFLAG:
+                            thermodata["REACTANTS"][entry["name"]] = entry
+                        entry = {}
                     continue
 
             elif IntervalFlag:
@@ -147,10 +155,11 @@ def reader(file):
                         elif not PDFLAG:
                             thermodata["REACTANTS"][entry["name"]] = entry
                         entry = {}
+
                         # next species
 
                     continue
-
+    return thermodata
 
 if __name__ == "__main__":
     os.chdir("datasets")
