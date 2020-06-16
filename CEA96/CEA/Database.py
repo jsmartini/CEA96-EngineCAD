@@ -3,7 +3,10 @@ import json
 import re
 
 class Species:
-
+    """
+    phase = 0 (gas)
+    nonzero for condensed phases
+    """
     def __init__(self, data:dict):
         self.raw = data
         self.name = data["name"]
@@ -27,6 +30,12 @@ class Species:
         return self.name, self.info, self.source
     def getRaw(self):
         return self.raw
+    def getTexp(self, temp):
+        return self.getInterval(temp)["T_exp"]
+    def getCp_Coe(self, temp):
+        return self.getInterval(temp)["Cp_coes"]
+    def getBconst(self, temp):
+        return self.getInterval(temp)["b_constants"]
 
 class ThermoDB:
 
@@ -34,6 +43,9 @@ class ThermoDB:
         "Products":[],
         "Reactants":[]
     }
+
+    simpleFuels = ["CH4", "CH4(L)", "H2", "H2(L)", "RP-1"]
+    simpleOxidizers = ["Air", "CL2", "CL2(L)", "F2", "F2(L)", "H2O2(L)", "N2H4(L)", "N2O", "NH4NO3(I)", "O2", "O2(L)"]
 
     def __init__(self):
         os.chdir("datasets")
