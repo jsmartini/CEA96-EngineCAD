@@ -21,7 +21,7 @@ class Species:
             if interval["temp_lower"] <= temp and interval["temp_upper"] >= temp:
                 return interval
     def getMW(self):
-        return self.MoleWeight
+        return self.MoleWeight/1000
     def getHoF(self):
         return self.HeatOfFormation
     def getElements(self):

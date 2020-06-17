@@ -55,24 +55,46 @@ def GibbsFreeEnergyTP(species:Species, temp:float, pressure:float, partialpressu
 def GibbsFreeEnergyT(species:Species, temp:float):
     return EnthalpyT(species, temp) - EnthalpyT(species, temp) * temp
 
-def PartialPressureSpecies(pressure:float, mixture:list, species:Species):
+def MxMolarMass(mixture:list):
+    sum = 0
+    assert isinstance(mixture[0], Species)
+    for specie in mixture:
+        sum = sum + specie.getMW() #kg/mol
+    return sum
+
+def MxMMoptimizer(mixture:list, MxMM = 0):
+    """
+    Dynamic Programming to minimize usage of computational resources
+    :param mixture:
+    :param MxMM:
+    :return: Total mixture molar mass
+    """
+    if MxMM != 0:
+        return MxMM
+    elif MxMM == 0:
+        return MxMolarMass(mixture)
+
+def MxMMfraction(species:Species, mixture, MxMM=0):
+    """
+    calculates mass fraction of species in mixture
+    :param species:
+    :param mixture:
+    :param MxMM:
+    :return:
+    """
+    return species.getMW()/MxMMoptimizer(mixture, MxMM)
+
+def PartialPressureSpecies(pressure:float, mixture:list, species:Species, MxMM = 0):
     """
     Calculates partial pressure for species in mixture at given total pressure
     :param pressure: total pressure
     :param mixture: mixture species
     :param species: individual species
+    :param MxMM: dynamic programming: already computed mixture molar mass
     :return:
     """
-    pass
-
-def MoleFraction(species:Species, mixture:list):
-    """
-    Calculates mole fraction for species
-    :param species: individual species
-    :param mixture: species in mixture
-    :return:
-    """
-    pass
+    MxMM = MxMMoptimizer(mixture, MxMM=MxMM)
+    return pressure*MxMMfraction(species=species, mixture=mixture, MxMM=MxMM)
 
 def getElementalProperties(mixture:list):
     """
