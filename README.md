@@ -13,3 +13,5 @@ Work in progress
 -Method of Characteristics for Metrics
 
 -Reconfiguring Existing CAD model (.STEP) renderer for new data format -> jsmartini/AutoRocketEngine-Output
+
+![alt text](https://github.com/jsmartini/CEA96-EngineCAD/blob/master/CH4.Air.6MPA.png?raw=true)
