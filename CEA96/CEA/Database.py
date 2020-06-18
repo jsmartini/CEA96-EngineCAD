@@ -21,7 +21,7 @@ class Species:
             if interval["temp_lower"] <= temp and interval["temp_upper"] >= temp:
                 return interval
     def getMW(self):
-        return self.MoleWeight/1000
+        return self.MoleWeight
     def getHoF(self):
         return self.HeatOfFormation
     def getElements(self):
@@ -48,7 +48,7 @@ class ThermoDB:
     simpleOxidizers = ["Air", "CL2", "CL2(L)", "F2", "F2(L)", "H2O2(L)", "N2H4(L)", "N2O", "NH4NO3(I)", "O2", "O2(L)"]
 
     def __init__(self):
-        os.chdir("datasets")
+        os.chdir("../datasets")
         self.db = json.load(open("thermo.json"))
         self.productsdata = self.db["PRODUCTS"]
         self.reactantsdata = self.db["REACTANTS"]
@@ -77,6 +77,8 @@ class ThermoDB:
             for name in self.reactants:
                 if pattern in name:
                     matching.append(("R", name))
+        if len(matching) == 0:
+            raise BaseException("Could Not Find Species")
         return matching
 
     def addSpeciesToMixture(self, name):
@@ -90,6 +92,7 @@ class ThermoDB:
 
     def getSpecies(self, name):
         location = self.Query(name)
+
         if len(location) > 1:
             raise ValueError("Name not specific, too many species with name in Query")
         if location[0][0] == "P":
@@ -106,4 +109,4 @@ class ThermoDB:
 
 if __name__ == "__main__":
     db = ThermoDB()
-    print(db.getSpecies("C2H4O(L),ethyle").getRaw())
+    print(db.getSpecies("C4H4").getInterval(5000))

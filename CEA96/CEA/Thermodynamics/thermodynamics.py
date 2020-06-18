@@ -12,7 +12,7 @@ def HeatCapacityT(species: Species, temp:float):
     :return: Heat capacity
     """
     Cp = 0
-    for a, t in zip(Species.getCp_Coe(temp), Species.getTexp(temp)):
+    for a, t in zip(Species.getCp_Coe(temp), species.getTexp(temp)):
         Cp = Cp + a*temp**t
     return Cp
 
@@ -23,8 +23,8 @@ def EnthalpyT(species: Species, temp:float):
     :param temp:
     :return: H
     """
-    a = Species.getCp_Coe(temp)
-    b = Species.getBconst(temp)[0]
+    a = species.getCp_Coe(temp)
+    b = species.getBconst(temp)[0]
     return -a[0]*temp**(-2) + (a[1]*temp**(-1)) * np.log(temp) + a[2] + a[3]*temp/2 + (a[5]*temp**(2))/3 + (a[5]*temp**3)/4 + (a[6]*temp**4)/5 + b/temp
 
 def EntropyT(species: Species, temp:float):
@@ -34,8 +34,8 @@ def EntropyT(species: Species, temp:float):
     :param temp:
     :return:
     """
-    a = Species.getCp_Coe(temp)
-    b = Species.getBconst(temp)[1]
+    a = species.getCp_Coe(temp)
+    b = species.getBconst(temp)[1]
     return (-a[0]*temp**-2)/2 - (a[1]*temp**-1) + a[2]*np.log(temp) + a[3]*temp + (a[4]*temp**2)/2 + (a[5]*temp**3)/3 + (a[6]*temp**4)/4 + b
 
 def EntropyTP(species: Species, temp: float, pressure:float, partialPressure: float):
@@ -53,7 +53,7 @@ def GibbsFreeEnergyTP(species:Species, temp:float, pressure:float, partialpressu
     return EnthalpyT(species, temp) - EntropyTP(species, temp, pressure, partialpressure) * temp
 
 def GibbsFreeEnergyT(species:Species, temp:float):
-    return EnthalpyT(species, temp) - EnthalpyT(species, temp) * temp
+    return EnthalpyT(species, temp) - EntropyT(species, temp) * temp
 
 def MxMolarMass(mixture:list):
     sum = 0
@@ -84,7 +84,7 @@ def MxMMfraction(species:Species, mixture, MxMM=0):
     """
     return species.getMW()/MxMMoptimizer(mixture, MxMM)
 
-def PartialPressureSpecies(pressure:float, mixture:list, species:Species, MxMM = 0):
+def PartialPressureSpecies(pressure:float, species:Species, MxMM = 0, mixture=[]):
     """
     Calculates partial pressure for species in mixture at given total pressure
     :param pressure: total pressure
@@ -115,6 +115,38 @@ def getElementalProperties(mixture:list):
                 elements[se] = (e[se], thermo.Chemical(se))
     return elements
 
+
+
+def getElementCount(mixture:list):
+    elements = {}
+    for species in mixture:
+        e = species.getElements()
+        for se in e.keys():
+            if se in elements.keys():
+                elements[se] = elements[se] + e[se]
+            else:
+                elements[se] = e[se]
+    return elements
+
+
+def getElementCountReactants(mixture:list, oxy:tuple, fuel:tuple):
+    elements = {}
+    for species in mixture:
+        e = species.getElements()
+        for se in e.keys():
+            if se in elements.keys():
+                if species.getInfo()[0] == oxy[0]:
+                    elements[se] = elements[se] + oxy[1]*e[se]
+                elif species.getInfo()[0] == fuel[0]:
+                    elements[se] = elements[se] + fuel[1]*e[se]
+            else:
+                if species.getInfo()[0] == oxy[0]:
+                    elements[se] = oxy[1]*e[se]
+                elif species.getInfo()[0] == fuel[0]:
+                    elements[se] = fuel[1]*e[se]
+    return elements
+
+
 def ChemicalPotential(species: Species, temp):
     """
     calculates mu, chemical potential
@@ -124,5 +156,3 @@ def ChemicalPotential(species: Species, temp):
     """
     pass
 
-def SolverStoich(ReactantsMixture, ProductsMixture):
-    pass
