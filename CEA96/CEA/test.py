@@ -16,4 +16,25 @@ def getObjects(mix:list, db=ThermoDB()):
 
 print(os.getcwd())
 
-print(GibbsFreeEnergyMixture(5000, 6*10**6, getObjects(["C4H4", "Air"])))
+
+temps = []
+gibbs = []
+mix = ["CH4", "O2","O2"]
+P = 6*10**6
+for i in range(1, 9500, 10):
+    try:
+        gibbsE = GibbsFreeEnergyMixture(i, P, getObjects(mix)) / 1000
+    except TypeError as e:
+        continue
+    print("TEMP {0}:\t\t:Gibbs:{1}\t".format(i,gibbsE))
+    temps.append(i)
+    gibbs.append(gibbsE)
+import matplotlib.pyplot as plt
+plt.style.use('seaborn-whitegrid')
+fig = plt.figure()
+ax = plt.axes()
+ax.plot(temps, gibbs)
+plt.title("Free Gibbs Energy and Temperature for {0} and {1} mixture. Fixed Pressure at {2}, MPa".format(mix[0], mix[1], P/10**6))
+plt.xlabel("Temperature (K)")
+plt.ylabel("Free Gibbs Energy (kJ/mol)")
+plt.show()

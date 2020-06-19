@@ -20,6 +20,7 @@ class Species:
         for interval in self.Intervals:
             if interval["temp_lower"] <= temp and interval["temp_upper"] >= temp:
                 return interval
+        return self.Intervals[0]
     def getMW(self):
         return self.MoleWeight
     def getHoF(self):
@@ -81,6 +82,33 @@ class ThermoDB:
             raise BaseException("Could Not Find Species")
         return matching
 
+    def getExact(self, pattern, type = None):
+        """
+        :param pattern: text pattern to search
+        :param type: true -> products, false->reactants, None, both (default
+        :return: list of matching names and database location
+        """
+        matching = []
+        if type == None:
+            for name in self.products:
+                if pattern == name:
+                    matching.append(("P", name))
+            for name in self.reactants:
+                if pattern == name:
+                    matching.append(("R", name))
+        elif type == True:
+            for name in self.products:
+                if pattern == name:
+                    matching.append(("P", name))
+        elif type == False:
+            for name in self.reactants:
+                if pattern == name:
+                    matching.append(("R", name))
+        if len(matching) == 0:
+            raise BaseException("Could Not Find Species")
+        return matching
+
+
     def addSpeciesToMixture(self, name):
         location = self.Query(name)
         if len(location) > 1:
@@ -91,10 +119,11 @@ class ThermoDB:
             self.Mixture["Reactants"][location[1]].append(Species(self.reactantsdata[location[0][1]]))
 
     def getSpecies(self, name):
-        location = self.Query(name)
+        location = self.getExact(name)
 
         if len(location) > 1:
             raise ValueError("Name not specific, too many species with name in Query")
+            location = location[0]
         if location[0][0] == "P":
             return Species(self.productsdata[location[0][1]])
         elif location[0][0] == "R":
